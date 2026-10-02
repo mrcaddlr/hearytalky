@@ -151,15 +151,43 @@ async function startMonitoring(deviceId = inputDevice.value || undefined) {
 
     if (stream) stopStreamOnly();
 
-    const audio = {
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-      channelCount: 1
-    };
-    if (deviceId) audio.deviceId = { exact: deviceId };
+    // Keep microphone constraints permissive. Some browser/device combinations
+    // reject optional constraints with OverconstrainedError.
+    let lastError;
+    const attempts = [
+      deviceId
+        ? { audio: {
+            deviceId: { exact: deviceId },
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }}
+        : { audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }},
+      deviceId
+        ? { audio: { deviceId: { ideal: deviceId } } }
+        : { audio: true },
+      { audio: true }
+    ];
 
-    stream = await navigator.mediaDevices.getUserMedia({ audio });
+    for (const constraints of attempts) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        lastError = null;
+        break;
+      } catch (err) {
+        lastError = err;
+        if (err?.name !== "OverconstrainedError" &&
+            err?.name !== "NotFoundError") {
+          throw err;
+        }
+      }
+    }
+
+    if (!stream) throw lastError || new Error("Microphone could not be opened.");
     makeAudioGraph();
 
     await loadDevices();
@@ -183,7 +211,11 @@ async function startMonitoring(deviceId = inputDevice.value || undefined) {
       ? "Microphone access was blocked. Allow microphone access and try again."
       : err?.name === "NotFoundError"
       ? "No microphone was detected."
-      : "Could not start microphone monitoring: " + (err?.message || err.name || "unknown error");
+      : "Could not start microphone monitoring: " + (
+        err?.name === "OverconstrainedError"
+          ? "The selected microphone rejected a requested setting; compatible defaults were tried."
+          : (err?.message || err.name || "unknown error")
+      );
     setMessage(text, true);
   }
 }
