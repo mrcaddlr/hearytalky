@@ -25,9 +25,20 @@
       <p class="headphone-note">Use headphones to prevent audio feedback.</p>
     </section>
 
-    <section class="meter-card" aria-label="Microphone level">
+    <section class="latency-mode card">
+      <div>
+        <strong>Latency mode</strong>
+        <span>Lower buffering can reduce delay but may increase glitches on busy devices.</span>
+      </div>
+      <select id="mode">
+        <option value="normal">Interactive</option>
+        <option value="ultra">Ultra low latency</option>
+      </select>
+    </section>
+
+    <section class="meter-card">
       <div class="meter-label"><span>Input level</span><span id="levelText">-∞ dB</span></div>
-      <div class="meter" role="meter" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-60">
+      <div class="meter" role="meter" aria-label="Microphone level" aria-valuemin="-60" aria-valuemax="0" aria-valuenow="-60">
         <div id="meterFill"></div>
         <div id="clipMark"></div>
       </div>
@@ -42,7 +53,7 @@
 
       <label>
         <span>Output</span>
-        <select id="outputDevice" disabled><option>Default output</option></select>
+        <select id="outputDevice" disabled><option>System default</option></select>
       </label>
 
       <label>
@@ -53,15 +64,21 @@
 
     <section class="tools">
       <button id="mute" class="secondary" type="button" disabled>Mute monitor</button>
-      <button id="shortcut" class="secondary" type="button" disabled>Space: start / stop</button>
+      <button id="refreshStats" class="secondary" type="button" disabled>Refresh latency stats</button>
     </section>
 
-    <details class="diagnostics">
-      <summary>Audio details</summary>
+    <details class="diagnostics" open>
+      <summary>Latency diagnostics</summary>
       <dl>
-        <div><dt>Audio mode</dt><dd id="audioMode">Not running</dd></div>
-        <div><dt>Browser latency</dt><dd id="latency">—</dd></div>
-        <div><dt>Output routing</dt><dd id="routing">Default output</dd></div>
+        <div><dt>Mode</dt><dd id="audioMode">Not running</dd></div>
+        <div><dt>Latency hint</dt><dd id="latencyHint">—</dd></div>
+        <div><dt>Input latency</dt><dd id="inputInfo">—</dd></div>
+        <div><dt>Audio engine</dt><dd id="latency">—</dd></div>
+        <div><dt>Estimated browser path</dt><dd id="estimate">—</dd></div>
+        <div><dt>Sample rate</dt><dd id="sampleRateInfo">—</dd></div>
+        <div><dt>Input processing</dt><dd id="processingInfo">—</dd></div>
+        <div><dt>Output</dt><dd id="routing">System default</dd></div>
+        <div><dt>Playback stats</dt><dd id="stats">Not running</dd></div>
       </dl>
     </details>
 
