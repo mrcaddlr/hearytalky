@@ -1,45 +1,45 @@
 # hearytalky
 
-A tiny browser microphone monitor designed for the lowest practical latency a normal web browser can provide.
+Near-zero-latency browser microphone monitoring.
 
 **Mic → Web Audio → headphones**
 
-No server. No recording. No speech-to-text. Audio stays on the device.
+The playback path is intentionally tiny:
 
-## Features
+`MediaStreamSource → GainNode → AudioContext.destination`
 
-- Near-zero-latency Web Audio monitoring
-- Interactive/low-latency AudioContext
-- Microphone selection
-- Output selection where browser support exists
-- Monitor volume
-- Mute
-- Live RMS input meter and clipping indicator
-- Browser-reported audio latency information
-- Keyboard shortcut: Space
-- Responsive mobile/desktop UI
-- PWA/offline shell
-- GitHub Pages deployment
-- No npm, build step, backend, account, or external dependency
+The level meter is a separate analyser branch and never sits between the microphone and your ears.
 
-## Important
+## Latency-focused design
 
-The app cannot guarantee literal zero latency. Microphone hardware, operating-system audio paths, browser implementation, and headphones all contribute latency.
+- `AudioContext({ latencyHint: "interactive" })` in Interactive mode
+- Ultra mode requests a 3 ms AudioContext latency preference
+- Microphone latency is requested as an ideal preference only when the browser exposes the constraint
+- Echo cancellation, noise suppression, and automatic gain control are requested off when supported
+- No forced sample rate, channel count, or sample size
+- Exact microphone IDs fall back to ideal/default selection
+- Output device selection uses `AudioContext.setSinkId()` where supported
+- A selected output is passed to the AudioContext constructor where supported
+- Browser-reported input, AudioContext, and output latency
+- Browser-path latency estimate
+- AudioPlaybackStats average/min/max latency and underrun telemetry where available
+- Metering stays off the playback path
+- No recording, upload, WebRTC, backend, or external dependency
 
-Bluetooth headphones can add noticeable latency. Wired headphones are generally preferable for live monitoring.
+Latency hints and media constraints are preferences, not guarantees. Microphone hardware, operating-system audio paths, browser implementation, and headphones still contribute to final microphone-to-ear delay.
 
-Use headphones. Monitoring through speakers can create feedback.
+## Bluetooth
 
-## Local development
+Bluetooth audio can add transport and codec delay that JavaScript cannot remove. Wired headphones are generally preferable for live monitoring.
 
-Serve the directory over HTTPS or localhost. Microphone permissions are restricted by browsers to secure contexts.
+## Feedback
 
-For example, any simple static server that provides localhost is enough. There is no build process.
-
-## GitHub Pages
-
-The included GitHub Actions workflow deploys the repository as a static GitHub Pages site.
+Use headphones. Monitoring through speakers can create acoustic feedback.
 
 ## Privacy
 
-hearytalky does not upload or store microphone audio. The microphone stream is connected locally to the Web Audio output.
+Microphone audio is routed locally from the browser input to the selected output. hearytalky does not upload or store microphone audio.
+
+## GitHub Pages
+
+The repository is static and deploys with the included GitHub Pages Actions workflow.
