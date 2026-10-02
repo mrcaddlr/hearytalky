@@ -1,5 +1,14 @@
-const CACHE="hearytalky-v3";
-const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon.svg"];
+
+const CACHE = "hearytalky-v4";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./app.js",
+  "./manifest.json",
+  "./icon.svg",
+  "./latency-lab-worklet.js"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -12,9 +21,13 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))
-      ))
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE)
+            .map((key) => caches.delete(key))
+        )
+      )
       .then(() => self.clients.claim())
   );
 });
@@ -24,18 +37,22 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   const isAppAsset =
-    url.pathname.endsWith("/") ||
-    /\.(html|js|css|json|svg)$/i.test(url.pathname);
+    url.origin === self.location.origin &&
+    (
+      url.pathname.endsWith("/") ||
+      /\.(html|js|css|json|svg)$/i.test(url.pathname)
+    );
 
   if (!isAppAsset) return;
 
-  // Prefer the network for the app itself so fixes reach users immediately.
-  // Fall back to the cached shell when offline.
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+
+        caches.open(CACHE)
+          .then((cache) => cache.put(event.request, copy));
+
         return response;
       })
       .catch(() => caches.match(event.request))
