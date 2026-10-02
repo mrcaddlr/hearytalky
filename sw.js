@@ -1,4 +1,4 @@
-const CACHE="hearytalky-v2";
+const CACHE="hearytalky-v3";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon.svg"];
 
 self.addEventListener("install", (event) => {
