@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#101116">
-  <meta name="description" content="Near-zero-latency browser microphone monitoring.">
+  <meta name="description" content="Near-zero-latency browser microphone monitoring and latency lab.">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -22,17 +22,33 @@
 
     <section class="hero">
       <button id="start" class="start" type="button">Start monitoring</button>
-      <p class="headphone-note">Use headphones to prevent audio feedback.</p>
+      <p class="headphone-note">Headphones recommended. Speakers can create feedback.</p>
     </section>
 
-    <section class="latency-mode card">
-      <div>
+    <section class="card mode-card">
+      <div class="card-heading">
         <strong>Latency mode</strong>
-        <span>Lower buffering can reduce delay but may increase glitches on busy devices.</span>
+        <span>Lower targets can reduce delay but may cause underruns on some devices.</span>
       </div>
       <select id="mode">
-        <option value="normal">Interactive</option>
-        <option value="ultra">Ultra low latency</option>
+        <option value="adaptive">Adaptive · lowest stable</option>
+        <option value="raw">Raw · direct path</option>
+        <option value="extreme">Extreme · 1 ms request</option>
+        <option value="ultra">Ultra · 3 ms request</option>
+        <option value="normal">Interactive · browser managed</option>
+        <option value="worklet">Worklet · experimental A/B path</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <div class="card-heading">
+        <strong>Input channels</strong>
+        <span>Mono can reduce audio work for voice, while Auto preserves the device's normal behavior.</span>
+      </div>
+      <select id="channels" disabled>
+        <option value="auto">Auto</option>
+        <option value="1">Mono preference</option>
+        <option value="2">Stereo preference</option>
       </select>
     </section>
 
@@ -53,7 +69,7 @@
 
       <label>
         <span>Output</span>
-        <select id="outputDevice" disabled><option>System default</option></select>
+        <select id="outputDevice"><option value="">System default</option></select>
       </label>
 
       <label>
@@ -64,22 +80,54 @@
 
     <section class="tools">
       <button id="mute" class="secondary" type="button" disabled>Mute monitor</button>
-      <button id="refreshStats" class="secondary" type="button" disabled>Refresh latency stats</button>
+      <button id="refreshStats" class="secondary" type="button" disabled>Refresh diagnostics</button>
+    </section>
+
+    <section class="card lab-card">
+      <div class="card-heading">
+        <strong>Latency lab</strong>
+        <span>Benchmarks measure the current input/output pair and store results only on this device.</span>
+      </div>
+
+      <div class="lab-buttons">
+        <button id="benchmark" class="primary-small" type="button" disabled>Run 10s benchmark</button>
+        <button id="loopback" class="secondary" type="button" disabled>Run physical loopback</button>
+      </div>
+
+      <p id="benchmarkStatus" class="lab-status"></p>
+      <p id="savedProfile" class="saved-profile">No saved benchmark for this device pair.</p>
     </section>
 
     <details class="diagnostics" open>
       <summary>Latency diagnostics</summary>
       <dl>
         <div><dt>Mode</dt><dd id="audioMode">Not running</dd></div>
-        <div><dt>Latency hint</dt><dd id="latencyHint">—</dd></div>
+        <div><dt>Graph</dt><dd id="graphInfo">—</dd></div>
+        <div><dt>Latency request</dt><dd id="latencyHint">—</dd></div>
         <div><dt>Input latency</dt><dd id="inputInfo">—</dd></div>
-        <div><dt>Audio engine</dt><dd id="latency">—</dd></div>
-        <div><dt>Estimated browser path</dt><dd id="estimate">—</dd></div>
-        <div><dt>Sample rate</dt><dd id="sampleRateInfo">—</dd></div>
+        <div><dt>Channels</dt><dd id="channelsInfo">—</dd></div>
         <div><dt>Input processing</dt><dd id="processingInfo">—</dd></div>
-        <div><dt>Output</dt><dd id="routing">System default</dd></div>
+        <div><dt>Input sample rate</dt><dd id="sampleRateInfo">—</dd></div>
+        <div><dt>Audio engine</dt><dd id="audioEngineInfo">—</dd></div>
+        <div><dt>Output latency</dt><dd id="outputLatencyInfo">—</dd></div>
+        <div><dt>Browser-path estimate</dt><dd id="estimate">—</dd></div>
+        <div><dt>Largest reported contributor</dt><dd id="bottleneck">—</dd></div>
         <div><dt>Playback stats</dt><dd id="stats">Not running</dd></div>
+        <div><dt>UI responsiveness</dt><dd id="jankText">Not running</dd></div>
+        <div><dt>Output routing</dt><dd id="routing">System default</dd></div>
+        <div><dt>AudioWorklet</dt><dd id="workletText">Not loaded</dd></div>
+        <div><dt>Browser</dt><dd id="browserText">—</dd></div>
       </dl>
+    </details>
+
+    <details class="capabilities">
+      <summary>Browser capabilities</summary>
+      <div id="capabilityGrid" class="capability-grid"></div>
+    </details>
+
+    <details class="howto">
+      <summary>Physical loopback test</summary>
+      <p>For an end-to-end measurement, route the selected output back into the selected microphone through an audio loopback path. The test sends a very short low-level pulse and measures when the microphone receives it. Normal headphones will not produce a loopback signal.</p>
     </details>
 
     <div id="message" class="message" role="status" aria-live="polite"></div>
