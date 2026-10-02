@@ -567,10 +567,16 @@ async function makeAudioGraph() {
 
 function applyRawControls() {
   if (mode.value === "raw") {
+    muted = false;
+    muteButton.textContent = "Mute monitor";
+    muteButton.disabled = true;
     volume.value = "100";
     volumeText.textContent = "100% direct";
+    volume.disabled = true;
   } else {
+    volume.disabled = false;
     volumeText.textContent = volume.value + "%";
+    muteButton.disabled = !stream;
   }
 }
 
@@ -1087,6 +1093,11 @@ function scheduleAdaptiveProbe() {
       return;
     }
 
+    if (benchmarkRunning) {
+      adaptiveTimer = setTimeout(scheduleAdaptiveProbe, 1000);
+      return;
+    }
+
     const stats = readPlaybackStats();
 
     if (
@@ -1185,8 +1196,8 @@ async function startMonitoring(deviceId, adaptiveRestart) {
     outputDevice.disabled = false;
     mode.disabled = false;
     channels.disabled = false;
-    muteButton.disabled =
-      mode.value === "raw";
+    muteButton.disabled = mode.value === "raw";
+    volume.disabled = mode.value === "raw";
     benchmarkButton.disabled = false;
     loopbackButton.disabled = false;
     refreshStatsButton.disabled = false;
@@ -1249,6 +1260,7 @@ function changeVolume(value) {
   if (mode.value === "raw") {
     volume.value = "100";
     volumeText.textContent = "100% direct";
+    volume.disabled = true;
     return;
   }
 
